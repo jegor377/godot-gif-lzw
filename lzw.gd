@@ -58,16 +58,6 @@ class CodeTable:
 		result += 'Counter: ' + str(self.counter) + '\n'
 		return result
 
-
-func initialize_code_table(message: PoolByteArray) -> CodeTable:
-	var result_code_table: CodeTable = CodeTable.new()
-	for byte in message:
-		var byte_code_entry: CodeEntry = CodeEntry.new([byte])
-		if not result_code_table.has(byte_code_entry):
-			result_code_table.add(byte_code_entry)
-	result_code_table.counter += 2
-	return result_code_table
-
 func initialize_color_table(colors: PoolByteArray) -> CodeTable:
 	var result_code_table: CodeTable = CodeTable.new()
 	for color_id in colors:
