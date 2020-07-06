@@ -71,12 +71,6 @@ func pop_front(input: PoolByteArray) -> PoolByteArray:
 		return input
 	return PoolByteArray([])
 
-func pop_front_output(output: Array) -> Array:
-	if not output.empty():
-		output.remove(0)
-		return output
-	return []
-
 # compression and decompression done with sources:
 # decompression http://www.matthewflickinger.com/lab/whatsinagif/lzw_image_data.asp
 # compression http://www0.cs.ucl.ac.uk/teaching/GZ05/07-images.pdf
