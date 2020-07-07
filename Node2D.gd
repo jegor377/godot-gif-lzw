@@ -19,13 +19,14 @@ func _ready():
 		1, 1, 1, 1, 1, 2, 2, 2, 2, 2
 	]
 
-	var compressed = lzw.new().compress_lzw(msg, PoolByteArray([0, 1, 2, 3]))
+	var color_table: PoolByteArray = PoolByteArray([0, 1, 2, 3])
+	var compressed = lzw.new().compress_lzw(msg, color_table)
 
 	for v in compressed[0]:
 		print(v)
 	print(compressed[1].to_string())
 
-	var decompressed = lzw.new().decompress_lzw((compressed[0] as Array).slice(1, compressed[0].size() - 2), PoolByteArray([0, 1, 2, 3]))
+	var decompressed = lzw.new().decompress_lzw((compressed[0] as Array).slice(1, compressed[0].size() - 2), color_table)
 	print(decompressed[1].to_string())
 
 	var res: String
