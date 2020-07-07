@@ -12,32 +12,34 @@ func _ready():
 		1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
 		1, 1, 1, 0, 0, 0, 0, 2, 2, 2,
 		1, 1, 1, 0, 0, 0, 0, 2, 2, 2,
-		1, 1, 1, 0, 0, 0, 0, 2, 2, 2,
-		1, 1, 1, 0, 0, 0, 0, 2, 2, 2,
-		1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
-		1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
-		1, 1, 1, 1, 1, 2, 2, 2, 2, 2
+		2, 2, 2, 0, 0, 0, 0, 1, 1, 1,
+		2, 2, 2, 0, 0, 0, 0, 1, 1, 1,
+		2, 2, 2, 2, 2, 1, 1, 1, 1, 1,
+		2, 2, 2, 2, 2, 1, 1, 1, 1, 1,
+		2, 2, 2, 2, 2, 1, 1, 1, 1, 1,
 	]
 
 	var color_table: PoolByteArray = PoolByteArray([0, 1, 2, 3])
-	var compressed = lzw.new().compress_lzw(msg, color_table)
+	var compressed: Array = lzw.new().compress_lzw(msg, color_table)
 
-	for v in compressed[0]:
-		print(v)
-	print(compressed[1].to_string())
+#	for v in compressed[0]:
+#		print(v)
+#	print(compressed[1].to_string())
+	for i in range(compressed[0].size()):
+		print("CODE: %d, BITS COUNT: %d" % [compressed[0][i], compressed[2][i]])
 
 	var decompressed = lzw.new().decompress_lzw((compressed[0] as Array).slice(1, compressed[0].size() - 2), color_table)
-	print(decompressed[1].to_string())
+#	print(decompressed[1].to_string())
 
-	var res: String
-	var i: int = 1
-	for v in decompressed[0]:
-		res += str(v)
-		i += 1
-		if i > 10:
-			res += '\n'
-			i = 1
-	print(res)
+#	var res: String
+#	var i: int = 1
+#	for v in decompressed[0]:
+#		res += str(v)
+#		i += 1
+#		if i > 10:
+#			res += '\n'
+#			i = 1
+#	print(res)
 
 	var are_the_same: bool = true
 	if (decompressed[0] as PoolByteArray).size() == msg.size():

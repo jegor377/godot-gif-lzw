@@ -74,7 +74,6 @@ func initialize_color_code_table(colors: PoolByteArray) -> CodeTable:
 	# move counter to the first available compression code index
 	var last_color_index: int = colors.size() - 1
 	var clear_code_index: int = pow(2, get_bits_number_for(last_color_index))
-	print("Clear Code index: %d, colors count: %d, bits size: %d" % [clear_code_index, colors.size(), get_bits_number_for(last_color_index)])
 	result_code_table.counter = clear_code_index + 2
 	return result_code_table
 
@@ -82,6 +81,7 @@ func initialize_color_code_table(colors: PoolByteArray) -> CodeTable:
 # http://www.matthewflickinger.com/lab/whatsinagif/lzw_image_data.asp
 
 func compress_lzw(image: PoolByteArray, colors: PoolByteArray) -> Array:
+	# Initialize code table
 	var code_table: CodeTable = initialize_color_code_table(colors)
 	# Clear Code index is 2**<code size>
 	# <code size> is the amount of bits needed to write down all colors
@@ -93,24 +93,58 @@ func compress_lzw(image: PoolByteArray, colors: PoolByteArray) -> Array:
 	var clear_code_index: int = pow(2, get_bits_number_for(last_color_index))
 	var code_stream: Array = [clear_code_index] # initialize with Clear Code
 	var index_stream: PoolByteArray = image
+	var current_code_size: int = get_bits_number_for(clear_code_index)
+	var code_sizes: Array = [current_code_size]
 
+	# Read first index from index stream.
 	var index_buffer: CodeEntry = CodeEntry.new([index_stream[0]])
 	index_stream.remove(0)
+	# <LOOP POINT>
 	while not index_stream.empty():
+		# Get the next index from the index stream.
 		var K: CodeEntry = CodeEntry.new([index_stream[0]])
 		index_stream.remove(0)
-		if code_table.has(index_buffer.add(K)):
+		# Is index buffer + K in our code table?
+		if code_table.has(index_buffer.add(K)): # if YES
+			# Add K to the end of the index buffer
 			index_buffer = index_buffer.add(K)
-		else:
+		else: # if NO
+			# Add a row for index buffer + K into our code table
 			code_stream.append(code_table.find(index_buffer))
-			# warning-ignore:return_value_discarded
-			code_table.add(index_buffer.add(K))
+
+			code_sizes.append(current_code_size)
+
+			# We don't want to add new code to code table if we've exceeded 4095
+			# index.
+			if code_table.counter != 4096:
+				# Output the code for just the index buffer to our code stream
+				# warning-ignore:return_value_discarded
+				code_table.add(index_buffer.add(K))
+			else:
+				# if we exceeded 4096 index, we should output Clear Code
+				# and reset everything
+				code_stream.append(clear_code_index)
+				code_table = initialize_color_code_table(colors)
+				current_code_size = get_bits_number_for(clear_code_index)
+
+			# Detect when you have to save new codes in bigger bits boxes
+			# change current code size when it happens because we want to save
+			# flexible code sized codes
+			var new_code_size_candidate: int = get_bits_number_for(code_table.counter - 1)
+			if new_code_size_candidate > current_code_size:
+				current_code_size = new_code_size_candidate
+
+			# Index buffer is set to K
 			index_buffer = K
+	# Output code for contents of index buffer
+	code_sizes.append(current_code_size)
 	code_stream.append(code_table.find(index_buffer))
 
-	code_stream.append(clear_code_index + 1) # end with End Of Information Code
+	# output end with End Of Information Code
+	code_sizes.append(current_code_size)
+	code_stream.append(clear_code_index + 1)
 
-	return [code_stream, code_table]
+	return [code_stream, code_table, code_sizes]
 
 func decompress_lzw(data: Array, colors: PoolByteArray) -> Array:
 	var code_table: CodeTable = initialize_color_code_table(colors)
