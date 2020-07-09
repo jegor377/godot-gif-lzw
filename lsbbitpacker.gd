@@ -1,16 +1,38 @@
 extends Node
 
 
-# Declare member variables here. Examples:
-# var a = 2
-# var b = "text"
+class LSB_LZWBitPacker:
+	var bit_index: int = 0
+	var byte: int = 0
 
+	var chunks: PoolByteArray = PoolByteArray([])
 
-# Called when the node enters the scene tree for the first time.
-func _ready():
-	pass # Replace with function body.
+	func _get_bit(value: int, index: int) -> int:
+		return (value >> index) & 1
 
+	func _set_bit(value: int, index: int) -> int:
+		return value | (1 << index)
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
-#	pass
+	func put_byte():
+		chunks.append(byte)
+		bit_index = 0
+		byte = 0
+
+	func write_bits(value: int, bits_count: int) -> void:
+		for i in range(bits_count):
+			if self._get_bit(value, i) == 1:
+				byte = self._set_bit(byte, bit_index)
+
+			bit_index += 1
+			if bit_index == 8:
+				self.put_byte()
+
+	func pack() -> PoolByteArray:
+		if bit_index != 0:
+			self.put_byte()
+		return chunks
+
+	func reset() -> void:
+		bit_index = 0
+		byte = 0
+		chunks = PoolByteArray([])

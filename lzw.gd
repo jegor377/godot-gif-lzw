@@ -116,15 +116,18 @@ func compress_lzw(image: PoolByteArray, colors: PoolByteArray) -> Array:
 
 			# We don't want to add new code to code table if we've exceeded 4095
 			# index.
-			if code_table.counter != 4096:
+			var last_entry_index: int = code_table.counter - 1
+			if last_entry_index != 4095:
 				# Output the code for just the index buffer to our code stream
 				# warning-ignore:return_value_discarded
 				code_table.add(index_buffer.add(K))
 			else:
-				# if we exceeded 4096 index, we should output Clear Code
-				# and reset everything
+				# if we exceeded 4095 index (code table is full), we should
+				# output Clear Code and reset everything.
 				code_stream.append(clear_code_index)
 				code_table = initialize_color_code_table(colors)
+				# get_bits_number_for(clear_code_index) is the same as
+				# LZW code size + 1
 				current_code_size = get_bits_number_for(clear_code_index)
 
 			# Detect when you have to save new codes in bigger bits boxes

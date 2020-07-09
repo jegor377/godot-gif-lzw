@@ -2,6 +2,7 @@ extends Node2D
 
 
 var lzw = preload("res://lzw.gd")
+var lsbbitpacker = preload("res://lsbbitpacker.gd")
 
 
 # Called when the node enters the scene tree for the first time.
@@ -50,3 +51,16 @@ func _ready():
 		are_the_same = false
 
 	print(are_the_same)
+
+	var lsb_bit_packer = lsbbitpacker.LSB_LZWBitPacker.new()
+	for i in range(compressed[0].size()):
+		lsb_bit_packer.write_bits(compressed[0][i], compressed[2][i])
+
+	var result_packed_bits: PoolByteArray = lsb_bit_packer.pack()
+
+	var res: String
+
+	for v in result_packed_bits:
+		res += '%X, ' % v
+
+	print(res.substr(0, res.length() - 2))
