@@ -77,6 +77,6 @@ func _ready():
 
 # Usefull docs
 - [GIF specification](https://www.w3.org/Graphics/GIF/spec-gif89a.txt)
-- [GIF format implementation tutorial](http://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp) (Special thanks to author of this website. I would propably not implement GIF format without help of this website.)
+- [GIF format implementation tutorial](http://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp) (Special thanks to author of this website. I would propably not implement GIF compression without help of this website.)
 - http://www0.cs.ucl.ac.uk/teaching/GZ05/07-images.pdf
 - [GIF topic on Wikipedia](https://en.wikipedia.org/wiki/Lempel%E2%80%93Ziv%E2%80%93Welch)
