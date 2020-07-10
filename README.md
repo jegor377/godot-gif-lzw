@@ -1,5 +1,5 @@
 # godot-gif-lzw
-GIF's LZW compression done in Godot. Whole code is based on GIF specification and [this website][http://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp].
+GIF's LZW compression done in Godot. Whole code is based on GIF specification and [this website](http://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp).
 
 # Usage
 Firstly, use code from realese only. Secondly, you should have put "gif-lzw" directory somewhere in your project modules directory and preload "lzw.gd" file. Here is how to do it:
@@ -76,7 +76,7 @@ func _ready():
 ```
 
 # Usefull docs
-- [GIF specification][https://www.w3.org/Graphics/GIF/spec-gif89a.txt]
-- [GIF format implementation tutorial][http://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp] (Special thanks to author of this website. I would propably not implement GIF format without help of this website.)
+- [GIF specification](https://www.w3.org/Graphics/GIF/spec-gif89a.txt)
+- [GIF format implementation tutorial](http://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp) (Special thanks to author of this website. I would propably not implement GIF format without help of this website.)
 - http://www0.cs.ucl.ac.uk/teaching/GZ05/07-images.pdf
-- [GIF topic on Wikipedia][https://en.wikipedia.org/wiki/Lempel%E2%80%93Ziv%E2%80%93Welch]
+- [GIF topic on Wikipedia](https://en.wikipedia.org/wiki/Lempel%E2%80%93Ziv%E2%80%93Welch)
