@@ -1,8 +1,7 @@
 extends Node2D
 
 
-var lzw = preload("res://lzw.gd")
-var lsbbitpacker = preload("res://lsbbitpacker.gd")
+var lzw = load("res://gif-lzw/lzw.gd")
 
 
 # Called when the node enters the scene tree for the first time.
@@ -21,46 +20,33 @@ func _ready():
 	]
 
 	var color_table: PoolByteArray = PoolByteArray([0, 1, 2, 3])
-	var compressed: Array = lzw.new().compress_lzw(msg, color_table)
 
-#	for v in compressed[0]:
-#		print(v)
-#	print(compressed[1].to_string())
-	for i in range(compressed[0].size()):
-		print("CODE: %d, BITS COUNT: %d" % [compressed[0][i], compressed[2][i]])
+	var compressed_res: Array = lzw.new().compress_lzw(msg, color_table)
 
-	var decompressed = lzw.new().decompress_lzw((compressed[0] as Array).slice(1, compressed[0].size() - 2), color_table)
-#	print(decompressed[1].to_string())
+	var res: String
+	for v in compressed_res[0]:
+		res += "%X, " % v
+	print(res.substr(0, res.length() - 2))
+	print("Min code size: %d" % compressed_res[1])
 
-#	var res: String
-#	var i: int = 1
-#	for v in decompressed[0]:
-#		res += str(v)
-#		i += 1
-#		if i > 10:
-#			res += '\n'
-#			i = 1
-#	print(res)
+	var decompressed_res: Array = lzw.new().decompress_lzw(compressed_res[0], compressed_res[1], color_table)
+
+	res = ''
+	var i: int = 1
+	for v in decompressed_res:
+		res += str(v)
+		i += 1
+		if i > 10:
+			res += '\n'
+			i = 1
+	print(res)
 
 	var are_the_same: bool = true
-	if (decompressed[0] as PoolByteArray).size() == msg.size():
-		for ii in range(decompressed[0].size()):
-			if decompressed[0][ii] != msg[ii]:
+	if (decompressed_res as PoolByteArray).size() == msg.size():
+		for ii in range(decompressed_res.size()):
+			if decompressed_res[ii] != msg[ii]:
 				are_the_same = false
 	else:
 		are_the_same = false
 
 	print(are_the_same)
-
-	var lsb_bit_packer = lsbbitpacker.LSB_LZWBitPacker.new()
-	for i in range(compressed[0].size()):
-		lsb_bit_packer.write_bits(compressed[0][i], compressed[2][i])
-
-	var result_packed_bits: PoolByteArray = lsb_bit_packer.pack()
-
-	var res: String
-
-	for v in result_packed_bits:
-		res += '%X, ' % v
-
-	print(res.substr(0, res.length() - 2))

@@ -1,6 +1,9 @@
 extends Node
 
 
+var lsbbitpacker = preload('./lsbbitpacker.gd')
+var lsbbitunpacker = preload('./lsbbitunpacker.gd')
+
 class CodeEntry:
 	var sequence: PoolByteArray
 
@@ -91,10 +94,14 @@ func compress_lzw(image: PoolByteArray, colors: PoolByteArray) -> Array:
 	# colors down.
 	var last_color_index: int = colors.size() - 1
 	var clear_code_index: int = pow(2, get_bits_number_for(last_color_index))
-	var code_stream: Array = [clear_code_index] # initialize with Clear Code
+	#var code_stream: Array = [clear_code_index] # initialize with Clear Code
 	var index_stream: PoolByteArray = image
 	var current_code_size: int = get_bits_number_for(clear_code_index)
-	var code_sizes: Array = [current_code_size]
+	var binary_code_stream = lsbbitpacker.LSB_LZWBitPacker.new()
+	#var code_sizes: Array = [current_code_size]
+
+	# initialize with Clear Code
+	binary_code_stream.write_bits(clear_code_index, current_code_size)
 
 	# Read first index from index stream.
 	var index_buffer: CodeEntry = CodeEntry.new([index_stream[0]])
@@ -110,9 +117,10 @@ func compress_lzw(image: PoolByteArray, colors: PoolByteArray) -> Array:
 			index_buffer = index_buffer.add(K)
 		else: # if NO
 			# Add a row for index buffer + K into our code table
-			code_stream.append(code_table.find(index_buffer))
+			#code_stream.append(code_table.find(index_buffer))
+			binary_code_stream.write_bits(code_table.find(index_buffer), current_code_size)
 
-			code_sizes.append(current_code_size)
+			#code_sizes.append(current_code_size)
 
 			# We don't want to add new code to code table if we've exceeded 4095
 			# index.
@@ -124,7 +132,8 @@ func compress_lzw(image: PoolByteArray, colors: PoolByteArray) -> Array:
 			else:
 				# if we exceeded 4095 index (code table is full), we should
 				# output Clear Code and reset everything.
-				code_stream.append(clear_code_index)
+				#code_stream.append(clear_code_index)
+				binary_code_stream.write_bits(clear_code_index, current_code_size)
 				code_table = initialize_color_code_table(colors)
 				# get_bits_number_for(clear_code_index) is the same as
 				# LZW code size + 1
@@ -140,35 +149,49 @@ func compress_lzw(image: PoolByteArray, colors: PoolByteArray) -> Array:
 			# Index buffer is set to K
 			index_buffer = K
 	# Output code for contents of index buffer
-	code_sizes.append(current_code_size)
-	code_stream.append(code_table.find(index_buffer))
+	#code_sizes.append(current_code_size)
+	#code_stream.append(code_table.find(index_buffer))
+	binary_code_stream.write_bits(code_table.find(index_buffer), current_code_size)
 
 	# output end with End Of Information Code
-	code_sizes.append(current_code_size)
-	code_stream.append(clear_code_index + 1)
+#	code_sizes.append(current_code_size)
+#	code_stream.append(clear_code_index + 1)
+	binary_code_stream.write_bits(clear_code_index + 1, current_code_size)
 
-	return [code_stream, code_table, code_sizes]
+	var min_code_size: int = get_bits_number_for(clear_code_index) - 1
 
-func decompress_lzw(data: Array, colors: PoolByteArray) -> Array:
+	return [binary_code_stream.pack(), min_code_size]
+
+func decompress_lzw(data: PoolByteArray, min_code_size: int, colors: PoolByteArray) -> PoolByteArray:
 	var code_table: CodeTable = initialize_color_code_table(colors)
 	var index_stream: PoolByteArray = PoolByteArray([])
-	var code_stream: Array = data
+	var binary_code_stream = lsbbitunpacker.LSB_LZWBitUnpacker.new(data)
+	var current_code_size: int = min_code_size + 1
+	var clear_code_index: int = pow(2, min_code_size)
 
 	# CODE is an index of code table, {CODE} is sequence inside
 	# code table with index CODE. The same goes for PREVCODE.
 
+	# Remove first Clear Code from stream. We don't need it.
+	binary_code_stream.remove_bits(current_code_size)
+
 	# let CODE be the first code in the code stream
-	var code: int = code_stream[0]
+	var code: int = binary_code_stream.read_bits(current_code_size)
 	# output {CODE} to index stream
 	index_stream.append_array(code_table.get(code).sequence)
-	code_stream.remove(0)
 	# set PREVCODE = CODE
 	var prevcode: int = code
 	# <LOOP POINT>
-	while not code_stream.empty():
+	while true:
 		# let CODE be the next code in the code stream
-		code = code_stream[0]
-		code_stream.remove(0)
+		code = binary_code_stream.read_bits(current_code_size)
+		# Detect Clear Code. When detected reset everything and get next code.
+		if code == clear_code_index:
+			code_table = initialize_color_code_table(colors)
+			current_code_size = min_code_size + 1
+			code = binary_code_stream.read_bits(current_code_size)
+		elif code == clear_code_index + 1: # Stop when detected EOI Code.
+			break
 		# is CODE in the code table?
 		var code_entry: CodeEntry = code_table.get(code)
 		if code_entry != null: # if YES
@@ -193,4 +216,9 @@ func decompress_lzw(data: Array, colors: PoolByteArray) -> Array:
 			# set PREVCODE = CODE
 			prevcode = code
 
-	return [index_stream, code_table]
+		# Detect when we should increase current code size and increase it.
+		var new_code_size_candidate: int = get_bits_number_for(code_table.counter)
+		if new_code_size_candidate > current_code_size:
+			current_code_size = new_code_size_candidate
+
+	return index_stream
