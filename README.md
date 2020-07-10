@@ -7,7 +7,7 @@ Firstly, use code from realese only. Secondly, you should have put "gif-lzw" dir
 ### Compression
 If you want to compress image, use `compress_lzw(image: PoolByteArray, colors: PoolByteArray) -> Array`.
 
-```
+```gdscript
 extends Node2D
 
 
@@ -40,7 +40,7 @@ func _ready():
 ### Decompression
 If you want to decompress image, use `decompress_lzw(code_stream_data: PoolByteArray, min_code_size: int, colors: PoolByteArray) -> PoolByteArray`.
 
-```
+```gdscript
 extends Node2D
 
 
