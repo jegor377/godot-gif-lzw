@@ -1,5 +1,5 @@
 # godot-gif-lzw
-GIF's LZW compression done in Godot. Whole code is based on GIF specification and [this website](http://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp).
+GIF's LZW compression/decompression done in Godot. Whole code is based on GIF specification and [this website](http://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp).
 
 # Usage
 Firstly, use code from realese only. Secondly, you should have put "gif-lzw" directory somewhere in your project modules directory and preload "lzw.gd" file. Here is how to do it:
